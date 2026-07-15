@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "calibration-gate"
+version = "0.1.0"
+description = "Calibration metrics for binary forecasts plus a multi-corpus acceptance gate for recalibrations"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Neel Shah", email = "neeljshah22@gmail.com" }]
+requires-python = ">=3.9"
+dependencies = ["numpy>=1.22"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.urls]
+Homepage = "https://github.com/neeljshah/calibration-gate"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
