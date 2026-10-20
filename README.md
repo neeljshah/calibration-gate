@@ -8,6 +8,8 @@ Distilled from a multi-sport forecasting system, where this exact gate
 repeatedly rejected recalibrations that looked like clear wins on a single
 evaluation window and evaporated everywhere else.
 
+That system is CourtVision, a four-sport forecasting system audited in public; the measured results and the retraction record are in its evidence index: https://github.com/neeljshah/court-vision/blob/master/EVIDENCE.md
+
 **Scope note:** calibration is a statement about forecast quality, not about
 any market advantage. Nothing here claims or implies an edge over anyone.
 
