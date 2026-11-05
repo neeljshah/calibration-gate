@@ -28,6 +28,18 @@ def test_pava_monotone() -> None:
     assert np.all(np.diff(f(grid)) >= -1e-12)
 
 
+def test_pava_pools_ties_independently_of_outcome_order() -> None:
+    p = np.array([0.5, 0.5])
+    for y in ([0.0, 1.0], [1.0, 0.0]):
+        assert fit_isotonic(p, y)(p) == pytest.approx([0.5, 0.5])
+
+
+def test_pava_weights_tied_groups_when_pooling() -> None:
+    p = np.array([0.2, 0.5, 0.5, 0.5, 0.9])
+    y = np.array([1.0, 0.0, 1.0, 0.0, 1.0])
+    assert fit_isotonic(p, y)(p) == pytest.approx([0.5, 0.5, 0.5, 0.5, 1.0])
+
+
 def test_platt_fixes_overconfidence() -> None:
     rng = np.random.default_rng(1)
     t = rng.uniform(0.1, 0.9, 5000)

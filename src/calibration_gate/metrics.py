@@ -13,8 +13,8 @@ def _validate(p: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         raise ValueError(f"p and y must be 1-D arrays of equal length, got {p.shape} vs {y.shape}")
     if len(p) == 0:
         raise ValueError("empty forecast arrays")
-    if np.any((p < 0) | (p > 1)):
-        raise ValueError("probabilities must be in [0, 1]")
+    if not np.all(np.isfinite(p)) or np.any((p < 0) | (p > 1)):
+        raise ValueError("probabilities must be finite and in [0, 1]")
     if not np.all(np.isin(y, (0.0, 1.0))):
         raise ValueError("outcomes must be 0 or 1")
     return p, y
@@ -64,23 +64,8 @@ def ece(p: np.ndarray, y: np.ndarray, bins: int = 10, strategy: str = "uniform")
     strategy="uniform": equal-width bins on [0,1]; strategy="quantile": equal-count
     bins (robust when forecasts cluster, e.g. all near 0.5).
     """
-    p, y = _validate(p, y)
-    if strategy == "uniform":
-        edges = np.linspace(0.0, 1.0, bins + 1)
-    elif strategy == "quantile":
-        edges = np.quantile(p, np.linspace(0.0, 1.0, bins + 1))
-        edges = np.unique(edges)  # collapse duplicate edges from ties
-    else:
-        raise ValueError(f"unknown strategy {strategy!r}")
-    n = len(p)
-    total = 0.0
-    for i in range(len(edges) - 1):
-        lo, hi = edges[i], edges[i + 1]
-        mask = (p >= lo) & (p <= hi) if i == len(edges) - 2 else (p >= lo) & (p < hi)
-        nb = int(mask.sum())
-        if nb:
-            total += (nb / n) * abs(float(y[mask].mean()) - float(p[mask].mean()))
-    return float(total)
+    mean_pred, obs_freq, counts = reliability_curve(p, y, bins=bins, strategy=strategy)
+    return float(np.average(np.abs(obs_freq - mean_pred), weights=counts))
 
 
 def reliability_curve(
@@ -95,6 +80,8 @@ def reliability_curve(
         edges = np.linspace(0.0, 1.0, bins + 1)
     elif strategy == "quantile":
         edges = np.unique(np.quantile(p, np.linspace(0.0, 1.0, bins + 1)))
+        if len(edges) == 1:
+            edges = np.repeat(edges, 2)  # one inclusive bin for constant forecasts
     else:
         raise ValueError(f"unknown strategy {strategy!r}")
     mean_pred, obs_freq, counts = [], [], []

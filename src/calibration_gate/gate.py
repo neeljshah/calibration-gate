@@ -27,13 +27,17 @@ def fit_isotonic(p: np.ndarray, y: np.ndarray) -> Recalibrator:
     order = np.argsort(p, kind="stable")
     ps, ys = p[order], y[order]
 
+    # Equal forecasts must share one fitted value, regardless of row order.
+    ps, first, counts = np.unique(ps, return_index=True, return_counts=True)
+    ys = np.add.reduceat(ys, first) / counts
+
     # PAVA: maintain blocks of (weighted mean, weight); merge while decreasing.
     means: List[float] = []
     weights: List[float] = []
     starts: List[int] = []  # start index of each block in sorted order
     for i, v in enumerate(ys):
         means.append(float(v))
-        weights.append(1.0)
+        weights.append(float(counts[i]))
         starts.append(i)
         while len(means) > 1 and means[-2] >= means[-1]:
             w = weights[-2] + weights[-1]

@@ -54,6 +54,25 @@ def test_ece_detects_miscalibration() -> None:
     assert ece(p, y) == pytest.approx(0.4)
 
 
+def test_quantile_ece_keeps_constant_forecasts() -> None:
+    assert ece([0.9, 0.9], [0.0, 1.0], strategy="quantile") == pytest.approx(0.4)
+
+
+def test_quantile_reliability_keeps_constant_forecasts() -> None:
+    mean_pred, observed, counts = reliability_curve(
+        [0.9, 0.9], [0.0, 1.0], strategy="quantile"
+    )
+    assert counts.tolist() == [2]
+    assert mean_pred == pytest.approx([0.9])
+    assert observed == pytest.approx([0.5])
+
+
+@pytest.mark.parametrize("bad", [np.nan, np.inf, -np.inf])
+def test_brier_rejects_nonfinite_probabilities(bad) -> None:
+    with pytest.raises(ValueError):
+        brier_score([bad], [1.0])
+
+
 def test_ece_bad_strategy() -> None:
     with pytest.raises(ValueError):
         ece(np.array([0.5]), np.array([1.0]), strategy="magic")
